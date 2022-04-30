@@ -83,19 +83,34 @@ signInURL = "https://api.moguding.net:9000/attendence/clock/v2/save"
 loginURL  = "https://api.moguding.net:9000/session/user/v3/login"
 
 loginJson = {"password":AES_Encrypt(password),"t":AES_Encrypt(str(int(round(time.time()*1000)))),"phone":AES_Encrypt(account),"loginType":"android","uuid":""}
-print("新版蘑菇钉的loginJson = ",loginJson)
+print("loginJson = ",loginJson,"\n \n \n")
+logs:str = "loginJson = "+str(loginJson)+"\n \n \n"
 res = requests.post(loginURL,
     headers={"Authorization":"","roleKey":"","Sign":"","Accept-Language":Accept_Language,"User-Agent":user_agent_value,"Content-Type":Content_Type,"Host":Host,"Accept-Encoding":Accept_Encoding,"Cache-Control":Cache_Control
     },
     json=loginJson)
+
+print("loginURL response = ",res.text,"\n \n \n")
+logs += "loginURL response = "+str(res.text)+"\n \n \n"
 
 
 UserId = res.json().get("data").get("userId")
 Token = res.json().get("data").get("token")
 sign = getMD5(str(UserId)+"student" + "3478cbbc33f84bd00d75d7dfa69e0daa")
 
+print("UserId = ",UserId,"\n ")
+print("Token = ",Token,"\n ")
+print("sign = ",sign,"\n \n \n")
+logs += "UserId = "+str(UserId)+"\n "
+logs += "Token = "+str(Token)+"\n "
+logs += "sign = "+str(sign)+"\n \n \n"
+
+
 res_plan = requests.post(planIdURL,headers={"Authorization":Token,"roleKey":"student","Sign":sign,"Accept-Language":Accept_Language,"User-Agent":user_agent_value,"Content-Type":Content_Type,"Host":Host,"Accept-Encoding":Accept_Encoding,"Cache-Control":Cache_Control
     },json={"state":""})
+
+print("planIdURL response = ",res_plan.text,"\n \n \n")
+logs += "planIdURL response = "+str(res_plan.text)+"\n \n \n"
 
 planID= json.loads(res_plan.text)['data'][0]['planId']
 newSign = getMD5("Android"+state+planID+UserId+address+"3478cbbc33f84bd00d75d7dfa69e0daa")
@@ -112,6 +127,15 @@ SignInJson = {
     "device" : "Android",
     "longitude" : longitude
 }
+
+print("planID = ",planID,"\n ")
+print("newSign = ",newSign,"\n ")
+print("SignInJson = ",SignInJson,"\n \n \n")
+logs+= "planID = "+str(planID)+"\n "
+logs+= "newSign = "+str(newSign)+"\n "
+logs+= "SignInJson = "+str(SignInJson)+"\n \n \n"
+
+
 res_login = requests.post(signInURL,
 headers={"Authorization":Token,"roleKey":"student","Sign":newSign,"Accept-Language":Accept_Language,
 "User-Agent":user_agent_value,"Content-Type":Content_Type,"Host":Host,"Accept-Encoding":Accept_Encoding,
@@ -119,5 +143,11 @@ headers={"Authorization":Token,"roleKey":"student","Sign":newSign,"Accept-Langua
     },
 json=SignInJson
 )
-
-
+print(res_login.text)
+logs+=res_login.text
+logs+="\n \n \n"
+if not os.path.exists("./logs"):
+    os.mkdir("./logs")
+file = open("./logs/"+str(time.strftime("20%y-%m-%d"))+".txt","a")
+file.write(logs)
+file.close()
